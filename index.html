@@ -393,4 +393,456 @@
     }
 
     .history-title {
-      font-size:
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .history-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .expense-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .item-cat {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .item-note {
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+
+    .item-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .badge-monthly {
+      background: rgba(139, 92, 246, 0.25);
+      color: #ddd6fe;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .item-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-amount {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .item-del {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 16px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- En-tête -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">💰</div>
+      <div>
+        <div class="brand-title">FloussTrack</div>
+        <div class="brand-sub">Gestionnaire personnel</div>
+      </div>
+    </div>
+    <button class="btn-export" onclick="exportCSV()" title="Exporter en CSV">📥</button>
+  </div>
+
+  <!-- Alertes budgétaires -->
+  <div id="alertDay" class="alert-banner day">
+    <span>⚠️</span>
+    <span>Alerte Jour : Plafond quotidien de 100 DH dépassé !</span>
+  </div>
+  <div id="alertWeek" class="alert-banner week">
+    <span>🚨</span>
+    <span>Alerte Semaine : Plafond de 1 000 DH dépassé cette semaine !</span>
+  </div>
+
+  <!-- Tableau de bord -->
+  <div class="stats-grid">
+    <div id="cardDay" class="stat-card">
+      <div class="stat-title">
+        <span>Aujourd'hui</span>
+        <span class="stat-badge">Quotidien</span>
+      </div>
+      <div id="totalDay" class="stat-value">0 DH</div>
+      <div class="stat-limit">Max recommandé : 100 DH</div>
+    </div>
+
+    <div id="cardWeek" class="stat-card">
+      <div class="stat-title">
+        <span>Cette Semaine</span>
+        <span class="stat-badge">Quotidien</span>
+      </div>
+      <div id="totalWeek" class="stat-value">0 DH</div>
+      <div class="stat-limit">Max recommandé : 1 000 DH</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">
+        <span>Charges Fixes</span>
+        <span class="stat-badge" style="background:rgba(139,92,246,0.2); color:#c4b5fd;">Mensuel</span>
+      </div>
+      <div id="totalFixed" class="stat-value" style="color:#c4b5fd;">0 DH</div>
+      <div class="stat-limit">Factures & abonnements</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">
+        <span>Total Ce Mois</span>
+        <span class="stat-badge">Tout inclus</span>
+      </div>
+      <div id="totalMonth" class="stat-value" style="color:var(--accent);">0 DH</div>
+      <div class="stat-limit">Quotidiens + Fixes</div>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout -->
+  <div class="form-card">
+    <div class="form-title">Nouvelle Dépense</div>
+
+    <div class="amount-box">
+      <input type="text" inputmode="decimal" id="amountInput" class="amount-input" placeholder="0" autocomplete="off">
+      <span class="currency-tag">DH</span>
+    </div>
+
+    <div class="quick-chips">
+      <button class="chip" onclick="addQuick(10)">+10</button>
+      <button class="chip" onclick="addQuick(20)">+20</button>
+      <button class="chip" onclick="addQuick(50)">+50</button>
+      <button class="chip" onclick="addQuick(100)">+100</button>
+      <button class="chip" onclick="addQuick(200)">+200</button>
+      <button class="chip" onclick="addQuick(300)">+300</button>
+    </div>
+
+    <!-- Calendrier et Date -->
+    <label class="field-label" for="expenseDate">Date</label>
+    <input type="date" id="expenseDate" class="input-field">
+
+    <!-- Note optionnelle -->
+    <label class="field-label" for="expenseNote">Note (optionnel)</label>
+    <input type="text" id="expenseNote" class="input-field" placeholder="Ex: Café avec collègue, plein complet...">
+
+    <!-- Interrupteur pour charge mensuelle -->
+    <div class="toggle-container">
+      <div>
+        <div class="toggle-label">Dépense mensuelle fixe</div>
+        <div class="toggle-sub">Exclure des alertes quotidiennes (100 DH) et hebdo (1 000 DH)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="monthlyToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <span class="field-label">Catégorie *</span>
+    <div class="cats-grid" id="catsGrid"></div>
+
+    <button class="btn-submit" onclick="submitExpense()">Ajouter la dépense</button>
+  </div>
+
+  <!-- Historique -->
+  <div class="history-card">
+    <div class="history-header">
+      <div class="history-title">Historique récent</div>
+      <div class="history-count" id="historyCount">0 dépense</div>
+    </div>
+    <div class="expense-list" id="expenseList">
+      <div class="empty-state">Aucune dépense enregistrée</div>
+    </div>
+  </div>
+
+  <script>
+    const categories = [
+      { id: 'essence', name: 'Essence moto', icon: '⛽', defaultMonthly: false },
+      { id: 'cafe', name: 'Café', icon: '☕', defaultMonthly: false },
+      { id: 'petit_dej', name: 'Petit déj', icon: '🥐', defaultMonthly: false },
+      { id: 'dejeuner', name: 'Déjeuner', icon: '🍴', defaultMonthly: false },
+      { id: 'diner', name: 'Dîner', icon: '🍲', defaultMonthly: false },
+      { id: 'sortir_night', name: 'Sortir night', icon: '🌃', defaultMonthly: false },
+      { id: 'divers', name: 'Divers', icon: '🛍️', defaultMonthly: false },
+      { id: 'internet', name: 'Internet et appli', icon: '🌐', defaultMonthly: false },
+      { id: 'salle', name: 'Facture salle', icon: '🏋️', defaultMonthly: true },
+      { id: 'telephone', name: 'Téléphone', icon: '📱', defaultMonthly: true },
+      { id: 'credit', name: 'Crédit', icon: '💳', defaultMonthly: true },
+      { id: 'autre_fixe', name: 'Autre charge fixe', icon: '📅', defaultMonthly: true }
+    ];
+
+    let selectedCat = categories[0];
+    let expenses = JSON.parse(localStorage.getItem('flousstrack_expenses') || '[]');
+
+    function getTodayString() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function initDatePicker() {
+      const dateInput = document.getElementById('expenseDate');
+      dateInput.value = getTodayString();
+    }
+
+    function renderCategories() {
+      const grid = document.getElementById('catsGrid');
+      grid.innerHTML = '';
+      categories.forEach(cat => {
+        const btn = document.createElement('div');
+        btn.className = `cat-btn ${cat.id === selectedCat.id ? 'selected' : ''} ${cat.defaultMonthly ? 'is-monthly' : ''}`;
+        btn.onclick = () => selectCategory(cat);
+        btn.innerHTML = `
+          <div class="cat-icon">${cat.icon}</div>
+          <div class="cat-name">${cat.name}</div>
+          ${cat.defaultMonthly ? '<span class="cat-tag">Mensuel</span>' : ''}
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectCategory(cat) {
+      selectedCat = cat;
+      const toggle = document.getElementById('monthlyToggle');
+      toggle.checked = cat.defaultMonthly;
+      renderCategories();
+    }
+
+    function addQuick(val) {
+      const input = document.getElementById('amountInput');
+      const cur = parseFloat(input.value.replace(',', '.')) || 0;
+      input.value = cur + val;
+    }
+
+    function isToday(dStr) {
+      return dStr === getTodayString();
+    }
+
+    function isThisWeek(dStr) {
+      const now = new Date();
+      const currentDay = now.getDay() || 7; // Lundi = 1
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - currentDay + 1);
+      monday.setHours(0,0,0,0);
+      const target = new Date(dStr + 'T00:00:00');
+      return target >= monday && target <= now;
+    }
+
+    function isThisMonth(dStr) {
+      const currentMonth = getTodayString().slice(0, 7);
+      return dStr.startsWith(currentMonth);
+    }
+
+    function updateUI() {
+      let dayTotal = 0;
+      let weekTotal = 0;
+      let fixedTotal = 0;
+      let monthTotal = 0;
+
+      expenses.forEach(e => {
+        const amt = parseFloat(e.amount);
+        if (isThisMonth(e.date)) {
+          monthTotal += amt;
+          if (e.isMonthly) {
+            fixedTotal += amt;
+          }
+        }
+        if (!e.isMonthly) {
+          if (isToday(e.date)) dayTotal += amt;
+          if (isThisWeek(e.date)) weekTotal += amt;
+        }
+      });
+
+      document.getElementById('totalDay').innerText = `${dayTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalWeek').innerText = `${weekTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalFixed').innerText = `${fixedTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalMonth').innerText = `${monthTotal.toLocaleString('fr-FR')} DH`;
+
+      const alertDay = document.getElementById('alertDay');
+      const cardDay = document.getElementById('cardDay');
+      if (dayTotal >= 100) {
+        alertDay.classList.add('show');
+        cardDay.classList.add('alert-active');
+      } else {
+        alertDay.classList.remove('show');
+        cardDay.classList.remove('alert-active');
+      }
+
+      const alertWeek = document.getElementById('alertWeek');
+      const cardWeek = document.getElementById('cardWeek');
+      if (weekTotal >= 1000) {
+        alertWeek.classList.add('show');
+        cardWeek.classList.add('alert-active');
+      } else {
+        alertWeek.classList.remove('show');
+        cardWeek.classList.remove('alert-active');
+      }
+
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('expenseList');
+      const count = document.getElementById('historyCount');
+      count.innerText = `${expenses.length} dépense${expenses.length > 1 ? 's' : ''}`;
+
+      if (expenses.length === 0) {
+        list.innerHTML = '<div class="empty-state">Aucune dépense enregistrée</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      expenses.slice(0, 30).forEach(e => {
+        const item = document.createElement('div');
+        item.className = 'expense-item';
+        item.innerHTML = `
+          <div class="item-left">
+            <div class="item-icon">${e.icon}</div>
+            <div>
+              <div class="item-cat">${e.category}</div>
+              ${e.note ? `<div class="item-note">${escapeHtml(e.note)}</div>` : ''}
+              <div class="item-date">
+                <span>${e.date}</span>
+                ${e.isMonthly ? '<span class="badge-monthly">Charge mensuelle</span>' : ''}
+              </div>
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amount">${parseFloat(e.amount).toLocaleString('fr-FR')} DH</div>
+            <button class="item-del" onclick="deleteExpense('${e.id}')">✕</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      }[tag] || tag));
+    }
+
+    function submitExpense() {
+      const input = document.getElementById('amountInput');
+      const rawVal = input.value.trim().replace(',', '.');
+      const amount = parseFloat(rawVal);
+
+      if (isNaN(amount) || amount <= 0) {
+        input.focus();
+        return;
+      }
+
+      const dateVal = document.getElementById('expenseDate').value || getTodayString();
+      const noteVal = document.getElementById('expenseNote').value.trim();
+      const isMonthly = document.getElementById('monthlyToggle').checked;
+
+      const newExpense = {
+        id: 'exp_' + Date.now(),
+        amount: amount,
+        category: selectedCat.name,
+        icon: selectedCat.icon,
+        isMonthly: isMonthly,
+        date: dateVal,
+        note: noteVal
+      };
+
+      expenses.unshift(newExpense);
+      localStorage.setItem('flousstrack_expenses', JSON.stringify(expenses));
+
+      input.value = '';
+      document.getElementById('expenseNote').value = '';
+      document.getElementById('expenseDate').value = getTodayString();
+      input.blur();
+      updateUI();
+    }
+
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      localStorage.setItem('flousstrack_expenses', JSON.stringify(expenses));
+      updateUI();
+    }
+
+    function exportCSV() {
+      if (expenses.length === 0) {
+        alert("Aucune dépense à exporter.");
+        return;
+      }
+      let csv = "ID,Date,Categorie,Montant (DH),Type,Note\n";
+      expenses.forEach(e => {
+        csv += `"${e.id}","${e.date}","${e.category}",${e.amount},"${e.isMonthly ? 'Charge Mensuelle' : 'Quotidien'}","${(e.note || '').replace(/"/g, '""')}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `depenses_${getTodayString()}.csv`;
+      a.click();
+    }
+
+    initDatePicker();
+    renderCategories();
+    updateUI();
+  </script>
+</body>
+</html>
