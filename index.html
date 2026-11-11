@@ -1,921 +1,807 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Dépenses Quotidiennes</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(156, 163, 175, 0.3);
-            border-radius: 9999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(156, 163, 175, 0.5);
-        }
-        .category-btn.active {
-            ring-width: 2px;
-            transform: translateY(-2px);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FloussTrack</title>
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230f172a'/><text y='65' x='50' font-size='50' text-anchor='middle'>💰</text></svg>">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #151f32;
+      --card-border: #23324d;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --purple: #8b5cf6;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 16px 16px 80px 16px;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-top: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #047857);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .brand-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .btn-export {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Bannières d'alerte */
+    .alert-banner {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-banner.show {
+      display: flex;
+    }
+    .alert-banner.day {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+    }
+    .alert-banner.week {
+      background: var(--danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #f87171;
+    }
+
+    /* Grille de statistiques */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 14px;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .stat-card.alert-active {
+      border-color: var(--danger);
+      background: linear-gradient(180deg, var(--card-bg) 0%, rgba(239, 68, 68, 0.08) 100%);
+    }
+
+    .stat-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .stat-limit {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    /* Formulaire */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .amount-box {
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .amount-input {
+      width: 100%;
+      background: #0f172a;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 60px 12px 14px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      outline: none;
+    }
+
+    .amount-input:focus {
+      border-color: var(--accent);
+    }
+
+    .currency-tag {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .quick-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chip {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      padding: 7px 12px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    /* Interrupteur Mensuel */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .toggle-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--purple);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Grille de catégories */
+    .cat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .cats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .cat-btn {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .cat-btn.selected {
+      border-color: var(--accent);
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .cat-btn.is-monthly.selected {
+      border-color: var(--purple);
+      background: rgba(139, 92, 246, 0.15);
+    }
+
+    .cat-icon {
+      font-size: 20px;
+    }
+
+    .cat-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .cat-tag {
+      font-size: 8px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      margin-top: 2px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #042f1a;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Historique */
+    .history-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .history-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .history-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .expense-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .item-cat {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .item-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .badge-monthly {
+      background: rgba(139, 92, 246, 0.25);
+      color: #ddd6fe;
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .item-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .item-amount {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .item-del {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 16px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-12">
+<body>
 
-    <!-- Navbar / Header -->
-    <header class="sticky top-0 z-30 backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                    <i data-lucide="wallet" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">FloussTrack</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Gestionnaire de dépenses</p>
-                </div>
-            </div>
+  <!-- En-tête -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon">💰</div>
+      <div>
+        <div class="brand-title">FloussTrack</div>
+        <div class="brand-sub">Gestionnaire personnel</div>
+      </div>
+    </div>
+    <button class="btn-export" onclick="exportCSV()" title="Exporter en CSV">📥</button>
+  </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Sélecteur de devise -->
-                <select id="currencySelect" class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-medium rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="DH">DH (MAD)</option>
-                    <option value="€">EUR (€)</option>
-                    <option value="$">USD ($)</option>
-                </select>
+  <!-- Alertes budgétaires -->
+  <div id="alertDay" class="alert-banner day">
+    <span>⚠️</span>
+    <span>Alerte Jour : Plafond quotidien de 100 DH dépassé !</span>
+  </div>
+  <div id="alertWeek" class="alert-banner week">
+    <span>🚨</span>
+    <span>Alerte Semaine : Plafond de 1 000 DH dépassé cette semaine !</span>
+  </div>
 
-                <!-- Bouton Démo -->
-                <button id="demoBtn" title="Charger des données d'exemple" class="hidden sm:flex items-center space-x-1.5 text-xs font-medium px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
-                    <span>Démo</span>
-                </button>
-
-                <!-- Export CSV -->
-                <button id="exportBtn" title="Exporter en CSV" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
-                    <i data-lucide="download" class="w-5 h-5"></i>
-                </button>
-
-                <!-- Dark/Light Mode -->
-                <button id="themeToggle" title="Changer le thème" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
-                    <i data-lucide="sun" id="sunIcon" class="w-5 h-5 hidden dark:block text-amber-400"></i>
-                    <i data-lucide="moon" id="moonIcon" class="w-5 h-5 block dark:hidden text-slate-700"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        
-        <!-- Cartes de résumé (Aujourd'hui, Semaine, Mois) -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <!-- Aujourd'hui -->
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Aujourd'hui</p>
-                        <h2 id="totalToday" class="text-2xl sm:text-3xl font-bold mt-1 text-slate-800 dark:text-white">0.00 DH</h2>
-                    </div>
-                    <div class="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl">
-                        <i data-lucide="calendar-clock" class="w-6 h-6"></i>
-                    </div>
-                </div>
-                <p id="countToday" class="text-xs text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1">
-                    <span>0 dépense enregistrée</span>
-                </p>
-            </div>
-
-            <!-- Cette Semaine -->
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Cette Semaine</p>
-                        <h2 id="totalWeek" class="text-2xl sm:text-3xl font-bold mt-1 text-slate-800 dark:text-white">0.00 DH</h2>
-                    </div>
-                    <div class="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl">
-                        <i data-lucide="calendar-days" class="w-6 h-6"></i>
-                    </div>
-                </div>
-                <p id="countWeek" class="text-xs text-slate-500 dark:text-slate-400 mt-3">
-                    Lundi à Dimanche
-                </p>
-            </div>
-
-            <!-- Ce Mois -->
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Ce Mois</p>
-                        <h2 id="totalMonth" class="text-2xl sm:text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">0.00 DH</h2>
-                    </div>
-                    <div class="p-2.5 bg-purple-500/10 text-purple-500 rounded-xl">
-                        <i data-lucide="pie-chart" class="w-6 h-6"></i>
-                    </div>
-                </div>
-                <p id="topCategoryMonth" class="text-xs text-slate-500 dark:text-slate-400 mt-3 truncate">
-                    Principal : Aucun
-                </p>
-            </div>
-        </div>
-
-        <!-- Layout Principal (2 colonnes sur Desktop) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            <!-- Colonne Gauche : Ajout rapide de dépense (5 cols) -->
-            <div class="lg:col-span-5 space-y-6">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-5">
-                        <h3 class="text-base font-bold flex items-center gap-2">
-                            <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-500"></i>
-                            Nouvelle Dépense
-                        </h3>
-                        <button id="mobileDemoBtn" class="sm:hidden text-xs text-emerald-500 font-medium underline">Charger démo</button>
-                    </div>
-
-                    <form id="expenseForm" class="space-y-5">
-                        <!-- Montant -->
-                        <div>
-                            <label for="amount" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Montant de la dépense *</label>
-                            <div class="relative flex items-center">
-                                <input type="text" inputmode="decimal" id="amount" placeholder="0" autocomplete="off"
-                                    class="w-full text-2xl font-bold bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-4 pr-16 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                                <span id="formCurrencyLabel" class="absolute right-4 text-slate-400 font-semibold">DH</span>
-                            </div>
-                            <!-- Boutons de montants rapides -->
-                            <div class="flex flex-wrap gap-1.5 mt-2">
-                                <button type="button" data-quick-amount="10" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+10</button>
-                                <button type="button" data-quick-amount="20" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+20</button>
-                                <button type="button" data-quick-amount="50" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+50</button>
-                                <button type="button" data-quick-amount="100" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+100</button>
-                                <button type="button" data-quick-amount="200" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+200</button>
-                                <button type="button" data-quick-amount="300" class="quick-amount text-xs bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:bg-emerald-500/20 px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95">+300</button>
-                            </div>
-                        </div>
-
-                        <!-- Sélection de Catégorie (Grille de boutons visuels) -->
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-xs font-medium text-slate-500 dark:text-slate-400">Catégorie *</label>
-                                <span id="selectedCategoryLabel" class="text-xs font-semibold text-emerald-500">Essence moto</span>
-                            </div>
-                            <div id="categoryGrid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2.5">
-                                <!-- Généré dynamiquement via JS -->
-                            </div>
-                        </div>
-
-                        <!-- Date & Note -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                            <div>
-                                <label for="date" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Date</label>
-                                <input type="date" id="date" required
-                                    class="w-full text-sm bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            </div>
-                            <div>
-                                <label for="note" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Note (optionnel)</label>
-                                <input type="text" id="note" placeholder="Ex: Café avec Amine..." maxlength="60"
-                                    class="w-full text-sm bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            </div>
-                        </div>
-
-                        <!-- Bouton Ajouter -->
-                        <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/25 active:scale-[0.99] transition flex items-center justify-center space-x-2">
-                            <i data-lucide="check" class="w-5 h-5"></i>
-                            <span>Enregistrer la dépense</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Colonne Droite : Analyse & Historique (7 cols) -->
-            <div class="lg:col-span-7 space-y-6">
-                
-                <!-- Barre de filtres commune -->
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-sm flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-                    <!-- Filtre Période -->
-                    <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                        <button data-period="today" class="period-btn flex-1 sm:flex-initial text-xs font-medium px-3 py-1.5 rounded-lg transition">Aujourd'hui</button>
-                        <button data-period="week" class="period-btn flex-1 sm:flex-initial text-xs font-medium px-3 py-1.5 rounded-lg transition">Semaine</button>
-                        <button data-period="month" class="period-btn active bg-white dark:bg-slate-900 text-emerald-500 shadow-sm flex-1 sm:flex-initial text-xs font-semibold px-3 py-1.5 rounded-lg transition">Mois</button>
-                        <button data-period="all" class="period-btn flex-1 sm:flex-initial text-xs font-medium px-3 py-1.5 rounded-lg transition">Tout</button>
-                    </div>
-
-                    <!-- Filtre Catégorie & Recherche -->
-                    <div class="flex items-center gap-2">
-                        <select id="filterCategory" class="w-full sm:w-auto text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <option value="all">Toutes les catégories</option>
-                            <!-- Généré par JS -->
-                        </select>
-                        <div class="relative flex-1 sm:w-44">
-                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                            <input type="text" id="searchInput" placeholder="Rechercher..." class="w-full text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Répartition par catégorie -->
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base font-bold flex items-center gap-2">
-                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-emerald-500"></i>
-                            Répartition par catégorie
-                        </h3>
-                        <span id="breakdownPeriodLabel" class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">Ce mois</span>
-                    </div>
-
-                    <!-- Barre multi-couleurs globale -->
-                    <div id="multiProgressBar" class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex mb-5">
-                        <!-- Segments générés via JS -->
-                    </div>
-
-                    <!-- Liste détaillée des barres de progression -->
-                    <div id="categoryBreakdownList" class="space-y-3.5 max-h-72 overflow-y-auto pr-1">
-                        <!-- Généré dynamiquement via JS -->
-                    </div>
-                </div>
-
-                <!-- Historique des dépenses -->
-                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-base font-bold flex items-center gap-2">
-                                <i data-lucide="history" class="w-5 h-5 text-emerald-500"></i>
-                                Historique des transactions
-                            </h3>
-                            <span id="historyCountBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">0</span>
-                        </div>
-
-                        <button id="clearAllBtn" class="text-xs text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1 hidden">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            <span>Tout vider</span>
-                        </button>
-                    </div>
-
-                    <!-- Liste des transactions -->
-                    <div id="expenseList" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-                        <!-- Généré dynamiquement via JS -->
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal de Confirmation Personnalisée (Pas de alert/confirm natif) -->
-    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
-            <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
-                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-            </div>
-            <h4 id="modalTitle" class="text-lg font-bold text-slate-900 dark:text-white">Confirmer la suppression</h4>
-            <p id="modalMessage" class="text-sm text-slate-500 dark:text-slate-400 mt-1">Voulez-vous vraiment supprimer cette dépense ? Cette action est irréversible.</p>
-            <div class="flex items-center justify-end gap-3 mt-6">
-                <button id="modalCancelBtn" class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition">
-                    Annuler
-                </button>
-                <button id="modalConfirmBtn" class="px-4 py-2 rounded-xl text-sm font-medium bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/25 transition">
-                    Supprimer
-                </button>
-            </div>
-        </div>
+  <!-- Tableau de bord -->
+  <div class="stats-grid">
+    <div id="cardDay" class="stat-card">
+      <div class="stat-title">
+        <span>Aujourd'hui</span>
+        <span class="stat-badge">Quotidien</span>
+      </div>
+      <div id="totalDay" class="stat-value">0 DH</div>
+      <div class="stat-limit">Max recommandé : 100 DH</div>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-        <div class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2.5 text-sm font-medium">
-            <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
-            <span id="toastMessage">Dépense ajoutée !</span>
-        </div>
+    <div id="cardWeek" class="stat-card">
+      <div class="stat-title">
+        <span>Cette Semaine</span>
+        <span class="stat-badge">Quotidien</span>
+      </div>
+      <div id="totalWeek" class="stat-value">0 DH</div>
+      <div class="stat-limit">Max recommandé : 1 000 DH</div>
     </div>
 
-    <script>
-        // --- 1. CONFIGURATION DES CATÉGORIES ---
-        const CATEGORIES = [
-            { id: 'essence_moto', name: 'Essence moto', icon: 'fuel', color: '#f97316', bgLight: 'bg-orange-500/10', textColor: 'text-orange-500', ringColor: 'ring-orange-500' },
-            { id: 'cafe', name: 'Café', icon: 'coffee', color: '#d97706', bgLight: 'bg-amber-500/10', textColor: 'text-amber-500', ringColor: 'ring-amber-500' },
-            { id: 'petit_dej', name: 'Petit déj', icon: 'croissant', color: '#eab308', bgLight: 'bg-yellow-500/10', textColor: 'text-yellow-500', ringColor: 'ring-yellow-500' },
-            { id: 'dejeuner', name: 'Déjeuner', icon: 'utensils', color: '#10b981', bgLight: 'bg-emerald-500/10', textColor: 'text-emerald-500', ringColor: 'ring-emerald-500' },
-            { id: 'diner', name: 'Dîner', icon: 'soup', color: '#14b8a6', bgLight: 'bg-teal-500/10', textColor: 'text-teal-500', ringColor: 'ring-teal-500' },
-            { id: 'internet_appli', name: 'Internet et appli', icon: 'wifi', color: '#3b82f6', bgLight: 'bg-blue-500/10', textColor: 'text-blue-500', ringColor: 'ring-blue-500' },
-            { id: 'facture_salle', name: 'Facture salle', icon: 'dumbbell', color: '#a855f7', bgLight: 'bg-purple-500/10', textColor: 'text-purple-500', ringColor: 'ring-purple-500' },
-            { id: 'telephone', name: 'Téléphone', icon: 'smartphone', color: '#06b6d4', bgLight: 'bg-cyan-500/10', textColor: 'text-cyan-500', ringColor: 'ring-cyan-500' },
-            { id: 'credit', name: 'Crédit', icon: 'landmark', color: '#f43f5e', bgLight: 'bg-rose-500/10', textColor: 'text-rose-500', ringColor: 'ring-rose-500' },
-            { id: 'sortir_night', name: 'Sortir night', icon: 'sparkles', color: '#ec4899', bgLight: 'bg-pink-500/10', textColor: 'text-pink-500', ringColor: 'ring-pink-500' },
-            { id: 'divers', name: 'Divers', icon: 'package', color: '#64748b', bgLight: 'bg-slate-500/10', textColor: 'text-slate-400', ringColor: 'ring-slate-400' }
-        ];
+    <div class="stat-card">
+      <div class="stat-title">
+        <span>Charges Fixes</span>
+        <span class="stat-badge" style="background:rgba(139,92,246,0.2); color:#c4b5fd;">Mensuel</span>
+      </div>
+      <div id="totalFixed" class="stat-value" style="color:#c4b5fd;">0 DH</div>
+      <div class="stat-limit">Factures & abonnements</div>
+    </div>
 
-        // --- 2. ÉTAT DE L'APPLICATION ---
-        let state = {
-            expenses: [],
-            selectedCategory: 'essence_moto',
-            filterPeriod: 'month', // 'today', 'week', 'month', 'all'
-            filterCategory: 'all',
-            searchQuery: '',
-            currency: 'DH',
-            pendingConfirmAction: null
-        };
+    <div class="stat-card">
+      <div class="stat-title">
+        <span>Total Ce Mois</span>
+        <span class="stat-badge">Tout inclus</span>
+      </div>
+      <div id="totalMonth" class="stat-value" style="color:var(--accent);">0 DH</div>
+      <div class="stat-limit">Quotidiens + Fixes</div>
+    </div>
+  </div>
 
-        const STORAGE_KEY = 'flousstrack_expenses_v1';
-        const SETTINGS_KEY = 'flousstrack_settings_v1';
+  <!-- Formulaire d'ajout -->
+  <div class="form-card">
+    <div class="form-title">Nouvelle Dépense</div>
 
-        // --- 3. INITIALISATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadFromStorage();
-            initDateInput();
-            renderCategoryButtons();
-            populateCategoryFilter();
-            setupEventListeners();
-            updateUI();
-            lucide.createIcons();
-        });
+    <div class="amount-box">
+      <input type="text" inputmode="decimal" id="amountInput" class="amount-input" placeholder="0" autocomplete="off">
+      <span class="currency-tag">DH</span>
+    </div>
 
-        function initDateInput() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
+    <div class="quick-chips">
+      <button class="chip" onclick="addQuick(10)">+10</button>
+      <button class="chip" onclick="addQuick(20)">+20</button>
+      <button class="chip" onclick="addQuick(50)">+50</button>
+      <button class="chip" onclick="addQuick(100)">+100</button>
+      <button class="chip" onclick="addQuick(200)">+200</button>
+      <button class="chip" onclick="addQuick(300)">+300</button>
+    </div>
+
+    <!-- Interrupteur pour marquer une dépense comme charge mensuelle -->
+    <div class="toggle-container">
+      <div>
+        <div class="toggle-label">Dépense mensuelle fixe</div>
+        <div class="toggle-sub">Exclure des alertes quotidiennes (100 DH) et hebdo (1 000 DH)</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="monthlyToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <span class="cat-label">Catégorie *</span>
+    <div class="cats-grid" id="catsGrid"></div>
+
+    <button class="btn-submit" onclick="submitExpense()">Ajouter la dépense</button>
+  </div>
+
+  <!-- Historique -->
+  <div class="history-card">
+    <div class="history-header">
+      <div class="history-title">Historique récent</div>
+      <div class="history-count" id="historyCount">0 dépense</div>
+    </div>
+    <div class="expense-list" id="expenseList">
+      <div class="empty-state">Aucune dépense enregistrée</div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration des catégories avec indicateur automatique mensuel
+    const categories = [
+      { id: 'essence', name: 'Essence moto', icon: '⛽', defaultMonthly: false },
+      { id: 'cafe', name: 'Café', icon: '☕', defaultMonthly: false },
+      { id: 'petit_dej', name: 'Petit déj', icon: '🥐', defaultMonthly: false },
+      { id: 'dejeuner', name: 'Déjeuner', icon: '🍴', defaultMonthly: false },
+      { id: 'diner', name: 'Dîner', icon: '🍲', defaultMonthly: false },
+      { id: 'sortir_night', name: 'Sortir night', icon: '🌃', defaultMonthly: false },
+      { id: 'divers', name: 'Divers', icon: '🛍️', defaultMonthly: false },
+      { id: 'internet', name: 'Internet et appli', icon: '🌐', defaultMonthly: false },
+      // Dépenses mensuelles par défaut :
+      { id: 'salle', name: 'Facture salle', icon: '🏋️', defaultMonthly: true },
+      { id: 'telephone', name: 'Téléphone', icon: '📱', defaultMonthly: true },
+      { id: 'credit', name: 'Crédit', icon: '💳', defaultMonthly: true },
+      { id: 'autre_fixe', name: 'Autre charge fixe', icon: '📅', defaultMonthly: true }
+    ];
+
+    let selectedCat = categories[0];
+    let expenses = JSON.parse(localStorage.getItem('flousstrack_expenses') || '[]');
+
+    // Rendu des boutons de catégorie
+    function renderCategories() {
+      const grid = document.getElementById('catsGrid');
+      grid.innerHTML = '';
+      categories.forEach(cat => {
+        const btn = document.createElement('div');
+        btn.className = `cat-btn ${cat.id === selectedCat.id ? 'selected' : ''} ${cat.defaultMonthly ? 'is-monthly' : ''}`;
+        btn.onclick = () => selectCategory(cat);
+        btn.innerHTML = `
+          <div class="cat-icon">${cat.icon}</div>
+          <div class="cat-name">${cat.name}</div>
+          ${cat.defaultMonthly ? '<span class="cat-tag">Mensuel</span>' : ''}
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectCategory(cat) {
+      selectedCat = cat;
+      const toggle = document.getElementById('monthlyToggle');
+      toggle.checked = cat.defaultMonthly;
+      renderCategories();
+    }
+
+    function addQuick(val) {
+      const input = document.getElementById('amountInput');
+      const cur = parseFloat(input.value.replace(',', '.')) || 0;
+      input.value = cur + val;
+    }
+
+    // Gestion des dates (ISO sans décalage horaire)
+    function isToday(dStr) {
+      const today = new Date().toISOString().slice(0, 10);
+      return dStr === today;
+    }
+
+    function isThisWeek(dStr) {
+      const now = new Date();
+      const currentDay = now.getDay() || 7; // Lundi = 1
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - currentDay + 1);
+      monday.setHours(0,0,0,0);
+      const target = new Date(dStr + 'T00:00:00');
+      return target >= monday && target <= now;
+    }
+
+    function isThisMonth(dStr) {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      return dStr.startsWith(currentMonth);
+    }
+
+    // Calculs et mise à jour de l'affichage
+    function updateUI() {
+      let dayTotal = 0;
+      let weekTotal = 0;
+      let fixedTotal = 0;
+      let monthTotal = 0;
+
+      expenses.forEach(e => {
+        const amt = parseFloat(e.amount);
+        if (isThisMonth(e.date)) {
+          monthTotal += amt;
+          if (e.isMonthly) {
+            fixedTotal += amt;
+          }
         }
-
-        function loadFromStorage() {
-            try {
-                const savedExpenses = localStorage.getItem(STORAGE_KEY);
-                if (savedExpenses) {
-                    state.expenses = JSON.parse(savedExpenses);
-                }
-                const savedSettings = localStorage.getItem(SETTINGS_KEY);
-                if (savedSettings) {
-                    const parsed = JSON.parse(savedSettings);
-                    if (parsed.currency) state.currency = parsed.currency;
-                    if (parsed.theme === 'light') {
-                        document.documentElement.classList.remove('dark');
-                    }
-                }
-                document.getElementById('currencySelect').value = state.currency;
-                document.getElementById('formCurrencyLabel').textContent = state.currency;
-            } catch (e) {
-                console.error('Erreur chargement localStorage:', e);
-            }
+        // Les dépenses mensuelles fixes ne sont pas comptées dans le quotidien / hebdo
+        if (!e.isMonthly) {
+          if (isToday(e.date)) dayTotal += amt;
+          if (isThisWeek(e.date)) weekTotal += amt;
         }
+      });
 
-        function saveToStorage() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.expenses));
-            } catch (e) {
-                console.error('Erreur sauvegarde localStorage:', e);
-            }
-        }
+      document.getElementById('totalDay').innerText = `${dayTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalWeek').innerText = `${weekTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalFixed').innerText = `${fixedTotal.toLocaleString('fr-FR')} DH`;
+      document.getElementById('totalMonth').innerText = `${monthTotal.toLocaleString('fr-FR')} DH`;
 
-        function saveSettings() {
-            try {
-                const isDark = document.documentElement.classList.contains('dark');
-                localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-                    currency: state.currency,
-                    theme: isDark ? 'dark' : 'light'
-                }));
-            } catch (e) {
-                console.error('Erreur sauvegarde paramètres:', e);
-            }
-        }
+      // Vérification des seuils d'alerte
+      const alertDay = document.getElementById('alertDay');
+      const cardDay = document.getElementById('cardDay');
+      if (dayTotal >= 100) {
+        alertDay.classList.add('show');
+        cardDay.classList.add('alert-active');
+      } else {
+        alertDay.classList.remove('show');
+        cardDay.classList.remove('alert-active');
+      }
 
-        // --- 4. RENDU DES COMPOSANTS ---
-        function renderCategoryButtons() {
-            const grid = document.getElementById('categoryGrid');
-            grid.innerHTML = '';
+      const alertWeek = document.getElementById('alertWeek');
+      const cardWeek = document.getElementById('cardWeek');
+      if (weekTotal >= 1000) {
+        alertWeek.classList.add('show');
+        cardWeek.classList.add('alert-active');
+      } else {
+        alertWeek.classList.remove('show');
+        cardWeek.classList.remove('alert-active');
+      }
 
-            CATEGORIES.forEach(cat => {
-                const isSelected = state.selectedCategory === cat.id;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = `category-btn flex flex-col items-center justify-center p-2.5 rounded-xl border transition-all duration-150 ${
-                    isSelected 
-                        ? `${cat.bgLight} border-transparent ring-2 ${cat.ringColor} shadow-xs` 
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/70 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`;
-                btn.innerHTML = `
-                    <div class="w-8 h-8 rounded-lg ${cat.bgLight} ${cat.textColor} flex items-center justify-center mb-1.5">
-                        <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
-                    </div>
-                    <span class="text-[11px] font-medium text-center leading-tight line-clamp-1 ${isSelected ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}">${cat.name}</span>
-                `;
-                btn.addEventListener('click', () => {
-                    state.selectedCategory = cat.id;
-                    document.getElementById('selectedCategoryLabel').textContent = cat.name;
-                    renderCategoryButtons();
-                    lucide.createIcons();
-                });
-                grid.appendChild(btn);
-            });
-        }
+      renderHistory();
+    }
 
-        function populateCategoryFilter() {
-            const select = document.getElementById('filterCategory');
-            select.innerHTML = '<option value="all">Toutes les catégories</option>';
-            CATEGORIES.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                select.appendChild(opt);
-            });
-        }
+    function renderHistory() {
+      const list = document.getElementById('expenseList');
+      const count = document.getElementById('historyCount');
+      count.innerText = `${expenses.length} dépense${expenses.length > 1 ? 's' : ''}`;
 
-        // --- 5. LOGIQUE DE DATES & FILTRES ---
-        function isToday(dateStr) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            return dateStr === todayStr;
-        }
+      if (expenses.length === 0) {
+        list.innerHTML = '<div class="empty-state">Aucune dépense enregistrée</div>';
+        return;
+      }
 
-        function isThisWeek(dateStr) {
-            const now = new Date();
-            const target = new Date(dateStr + 'T00:00:00');
-            const dayOfWeek = now.getDay() || 7; // 1 (Lun) - 7 (Dim)
-            const firstDay = new Date(now);
-            firstDay.setDate(now.getDate() - dayOfWeek + 1);
-            firstDay.setHours(0, 0, 0, 0);
+      list.innerHTML = '';
+      expenses.slice(0, 30).forEach(e => {
+        const item = document.createElement('div');
+        item.className = 'expense-item';
+        item.innerHTML = `
+          <div class="item-left">
+            <div class="item-icon">${e.icon}</div>
+            <div>
+              <div class="item-cat">${e.category}</div>
+              <div class="item-date">
+                <span>${e.date}</span>
+                ${e.isMonthly ? '<span class="badge-monthly">Charge mensuelle</span>' : ''}
+              </div>
+            </div>
+          </div>
+          <div class="item-right">
+            <div class="item-amount">${parseFloat(e.amount).toLocaleString('fr-FR')} DH</div>
+            <button class="item-del" onclick="deleteExpense('${e.id}')">✕</button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
 
-            const lastDay = new Date(firstDay);
-            lastDay.setDate(firstDay.getDate() + 6);
-            lastDay.setHours(23, 59, 59, 999);
+    function submitExpense() {
+      const input = document.getElementById('amountInput');
+      const rawVal = input.value.trim().replace(',', '.');
+      const amount = parseFloat(rawVal);
 
-            return target >= firstDay && target <= lastDay;
-        }
+      if (isNaN(amount) || amount <= 0) {
+        input.focus();
+        return;
+      }
 
-        function isThisMonth(dateStr) {
-            const now = new Date();
-            const [year, month] = dateStr.split('-').map(Number);
-            return year === now.getFullYear() && month === (now.getMonth() + 1);
-        }
+      const isMonthly = document.getElementById('monthlyToggle').checked;
+      const today = new Date().toISOString().slice(0, 10);
 
-        function getFilteredExpenses(ignoreCategoryFilter = false) {
-            return state.expenses.filter(exp => {
-                // Filtre période
-                if (state.filterPeriod === 'today' && !isToday(exp.date)) return false;
-                if (state.filterPeriod === 'week' && !isThisWeek(exp.date)) return false;
-                if (state.filterPeriod === 'month' && !isThisMonth(exp.date)) return false;
+      const newExpense = {
+        id: 'exp_' + Date.now(),
+        amount: amount,
+        category: selectedCat.name,
+        icon: selectedCat.icon,
+        isMonthly: isMonthly,
+        date: today
+      };
 
-                // Filtre catégorie
-                if (!ignoreCategoryFilter && state.filterCategory !== 'all' && exp.category !== state.filterCategory) {
-                    return false;
-                }
+      expenses.unshift(newExpense);
+      localStorage.setItem('flousstrack_expenses', JSON.stringify(expenses));
 
-                // Filtre recherche
-                if (state.searchQuery.trim() !== '') {
-                    const q = state.searchQuery.toLowerCase();
-                    const catObj = CATEGORIES.find(c => c.id === exp.category);
-                    const catName = catObj ? catObj.name.toLowerCase() : '';
-                    const noteMatch = (exp.note || '').toLowerCase().includes(q);
-                    const catMatch = catName.includes(q);
-                    const amountMatch = exp.amount.toString().includes(q);
-                    if (!noteMatch && !catMatch && !amountMatch) return false;
-                }
+      input.value = '';
+      input.blur();
+      updateUI();
+    }
 
-                return true;
-            }).sort((a, b) => {
-                if (b.date !== a.date) return b.date.localeCompare(a.date);
-                return b.createdAt - a.createdAt;
-            });
-        }
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      localStorage.setItem('flousstrack_expenses', JSON.stringify(expenses));
+      updateUI();
+    }
 
-        // --- 6. MISE À JOUR DE L'INTERFACE ---
-        function formatAmount(num) {
-            return `${Number(num).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${state.currency}`;
-        }
+    function exportCSV() {
+      if (expenses.length === 0) {
+        alert("Aucune dépense à exporter.");
+        return;
+      }
+      let csv = "ID,Date,Categorie,Montant (DH),Type\n";
+      expenses.forEach(e => {
+        csv += `"${e.id}","${e.date}","${e.category}",${e.amount},"${e.isMonthly ? 'Charge Mensuelle' : 'Quotidien'}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `depenses_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    }
 
-        function updateUI() {
-            updateSummaryCards();
-            updateCategoryBreakdown();
-            updateHistoryList();
-            lucide.createIcons();
-        }
-
-        function updateSummaryCards() {
-            let todaySum = 0, todayCount = 0;
-            let weekSum = 0;
-            let monthSum = 0;
-            const monthCatTotals = {};
-
-            state.expenses.forEach(exp => {
-                const amt = Number(exp.amount) || 0;
-                if (isToday(exp.date)) {
-                    todaySum += amt;
-                    todayCount++;
-                }
-                if (isThisWeek(exp.date)) {
-                    weekSum += amt;
-                }
-                if (isThisMonth(exp.date)) {
-                    monthSum += amt;
-                    monthCatTotals[exp.category] = (monthCatTotals[exp.category] || 0) + amt;
-                }
-            });
-
-            document.getElementById('totalToday').textContent = formatAmount(todaySum);
-            document.getElementById('countToday').textContent = `${todayCount} dépense${todayCount > 1 ? 's' : ''} aujourd'hui`;
-            document.getElementById('totalWeek').textContent = formatAmount(weekSum);
-            document.getElementById('totalMonth').textContent = formatAmount(monthSum);
-
-            // Top catégorie du mois
-            let topCatId = null;
-            let maxVal = 0;
-            for (const [catId, val] of Object.entries(monthCatTotals)) {
-                if (val > maxVal) {
-                    maxVal = val;
-                    topCatId = catId;
-                }
-            }
-            const topCatObj = CATEGORIES.find(c => c.id === topCatId);
-            document.getElementById('topCategoryMonth').textContent = topCatObj 
-                ? `Top : ${topCatObj.name} (${formatAmount(maxVal)})` 
-                : 'Aucune dépense ce mois';
-        }
-
-        function updateCategoryBreakdown() {
-            const periodLabels = {
-                today: "Aujourd'hui",
-                week: 'Cette semaine',
-                month: 'Ce mois',
-                all: 'Toutes périodes'
-            };
-            document.getElementById('breakdownPeriodLabel').textContent = periodLabels[state.filterPeriod];
-
-            const periodExpenses = getFilteredExpenses(true); // On garde toutes les catégories pour la vue globale de la période
-            const totalPeriod = periodExpenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-            const multiBar = document.getElementById('multiProgressBar');
-            const listContainer = document.getElementById('categoryBreakdownList');
-            multiBar.innerHTML = '';
-            listContainer.innerHTML = '';
-
-            if (totalPeriod === 0) {
-                listContainer.innerHTML = `
-                    <div class="text-center py-6 text-slate-400 dark:text-slate-500 text-xs">
-                        Aucune donnée à afficher pour cette période.
-                    </div>
-                `;
-                return;
-            }
-
-            // Calcul par catégorie
-            const breakdown = CATEGORIES.map(cat => {
-                const sum = periodExpenses
-                    .filter(e => e.category === cat.id)
-                    .reduce((acc, curr) => acc + Number(curr.amount), 0);
-                const percent = totalPeriod > 0 ? (sum / totalPeriod) * 100 : 0;
-                return { ...cat, sum, percent };
-            }).filter(item => item.sum > 0).sort((a, b) => b.sum - a.sum);
-
-            // Remplir la barre multi-couleurs et la liste
-            breakdown.forEach(item => {
-                // Segment de barre
-                const seg = document.createElement('div');
-                seg.style.width = `${item.percent}%`;
-                seg.style.backgroundColor = item.color;
-                seg.title = `${item.name}: ${item.percent.toFixed(1)}%`;
-                seg.className = 'h-full transition-all duration-300 first:rounded-l-full last:rounded-r-full';
-                multiBar.appendChild(seg);
-
-                // Ligne détaillée
-                const row = document.createElement('div');
-                row.className = 'group cursor-pointer p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition';
-                row.addEventListener('click', () => {
-                    // Permet de filtrer en cliquant sur une catégorie
-                    state.filterCategory = state.filterCategory === item.id ? 'all' : item.id;
-                    document.getElementById('filterCategory').value = state.filterCategory;
-                    updateHistoryList();
-                    lucide.createIcons();
-                });
-
-                row.innerHTML = `
-                    <div class="flex items-center justify-between text-xs mb-1.5">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-6 h-6 rounded-lg ${item.bgLight} ${item.textColor} flex items-center justify-center">
-                                <i data-lucide="${item.icon}" class="w-3.5 h-3.5"></i>
-                            </span>
-                            <span class="font-semibold text-slate-700 dark:text-slate-200">${item.name}</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-slate-900 dark:text-white">${formatAmount(item.sum)}</span>
-                            <span class="text-[11px] text-slate-400 w-10 text-right">${item.percent.toFixed(0)}%</span>
-                        </div>
-                    </div>
-                    <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500" style="width: ${item.percent}%; background-color: ${item.color}"></div>
-                    </div>
-                `;
-                listContainer.appendChild(row);
-            });
-        }
-
-        function formatHumanDate(dateStr) {
-            if (isToday(dateStr)) return "Aujourd'hui";
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (dateStr === yesterday.toISOString().split('T')[0]) return "Hier";
-
-            const [y, m, d] = dateStr.split('-');
-            const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-            return `${d} ${months[parseInt(m, 10) - 1]} ${y}`;
-        }
-
-        function updateHistoryList() {
-            const filtered = getFilteredExpenses(false);
-            const listEl = document.getElementById('expenseList');
-            const badgeEl = document.getElementById('historyCountBadge');
-            const clearAllBtn = document.getElementById('clearAllBtn');
-
-            badgeEl.textContent = filtered.length;
-            clearAllBtn.classList.toggle('hidden', state.expenses.length === 0);
-            listEl.innerHTML = '';
-
-            if (filtered.length === 0) {
-                listEl.innerHTML = `
-                    <div class="text-center py-12 px-4">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                            <i data-lucide="receipt" class="w-6 h-6"></i>
-                        </div>
-                        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Aucune dépense trouvée</p>
-                        <p class="text-xs text-slate-400 mt-1">Ajoutez une dépense à gauche ou modifiez vos filtres.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            filtered.forEach(exp => {
-                const cat = CATEGORIES.find(c => c.id === exp.category) || CATEGORIES[CATEGORIES.length - 1];
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition group';
-                
-                item.innerHTML = `
-                    <div class="flex items-center space-x-3 min-w-0">
-                        <div class="w-10 h-10 rounded-xl ${cat.bgLight} ${cat.textColor} flex items-center justify-center shrink-0">
-                            <i data-lucide="${cat.icon}" class="w-5 h-5"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center space-x-2">
-                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">${cat.name}</p>
-                                <span class="text-[11px] text-slate-400 dark:text-slate-500 shrink-0">• ${formatHumanDate(exp.date)}</span>
-                            </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                                ${exp.note ? exp.note : '<span class="italic opacity-60">Aucune note</span>'}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3 shrink-0 ml-2">
-                        <span class="text-sm font-bold text-slate-900 dark:text-white">-${formatAmount(exp.amount)}</span>
-                        <button type="button" data-delete-id="${exp.id}" title="Supprimer" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `;
-
-                const delBtn = item.querySelector('[data-delete-id]');
-                delBtn.addEventListener('click', () => {
-                    openConfirmModal(
-                        'Supprimer cette dépense ?',
-                        `Voulez-vous supprimer "${cat.name}" de ${formatAmount(exp.amount)} ?`,
-                        () => deleteExpense(exp.id)
-                    );
-                });
-
-                listEl.appendChild(item);
-            });
-        }
-
-        // --- 7. ACTIONS UTILISATEUR ---
-        function addExpense(e) {
-            if (e) e.preventDefault();
-            const amountInput = document.getElementById('amount');
-            const dateInput = document.getElementById('date');
-            const noteInput = document.getElementById('note');
-
-            // Normalisation de la virgule et des espaces
-            const rawVal = amountInput.value.replace(/\s+/g, '').replace(',', '.');
-            const amount = parseFloat(rawVal);
-
-            if (isNaN(amount) || amount <= 0) {
-                showToast('Veuillez entrer un montant valide');
-                amountInput.focus();
-                return;
-            }
-
-            const newExp = {
-                id: 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-                amount: amount,
-                category: state.selectedCategory,
-                date: dateInput.value || new Date().toISOString().split('T')[0],
-                note: noteInput.value.trim(),
-                createdAt: Date.now()
-            };
-
-            state.expenses.unshift(newExp);
-            saveToStorage();
-            updateUI();
-
-            // Reset form et fermeture du clavier mobile
-            amountInput.value = '';
-            noteInput.value = '';
-            amountInput.blur();
-            showToast(`Dépense de ${formatAmount(amount)} enregistrée !`);
-        }
-
-        function deleteExpense(id) {
-            state.expenses = state.expenses.filter(e => e.id !== id);
-            saveToStorage();
-            updateUI();
-            showToast('Dépense supprimée');
-        }
-
-        function loadDemoData() {
-            const today = new Date();
-            const fmt = (d) => d.toISOString().split('T')[0];
-            
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-            
-            const twoDaysAgo = new Date(today);
-            twoDaysAgo.setDate(today.getDate() - 2);
-
-            const fourDaysAgo = new Date(today);
-            fourDaysAgo.setDate(today.getDate() - 4);
-
-            const sample = [
-                { id: 'd1', amount: 50, category: 'essence_moto', date: fmt(today), note: 'Plein station Afriquia', createdAt: Date.now() - 1000 },
-                { id: 'd2', amount: 18, category: 'cafe', date: fmt(today), note: 'Noss Noss matinal', createdAt: Date.now() - 2000 },
-                { id: 'd3', amount: 45, category: 'dejeuner', date: fmt(today), note: 'Tacos + boisson', createdAt: Date.now() - 3000 },
-                { id: 'd4', amount: 25, category: 'petit_dej', date: fmt(yesterday), note: 'Msemen, Harcha & Thé', createdAt: Date.now() - 4000 },
-                { id: 'd5', amount: 200, category: 'facture_salle', date: fmt(yesterday), note: 'Abonnement mensuel Gym', createdAt: Date.now() - 5000 },
-                { id: 'd6', amount: 100, category: 'telephone', date: fmt(twoDaysAgo), note: 'Recharge appels + data', createdAt: Date.now() - 6000 },
-                { id: 'd7', amount: 150, category: 'sortir_night', date: fmt(twoDaysAgo), note: 'Soirée entre amis', createdAt: Date.now() - 7000 },
-                { id: 'd8', amount: 85, category: 'diner', date: fmt(fourDaysAgo), note: 'Pizza & Grillades', createdAt: Date.now() - 8000 },
-                { id: 'd9', amount: 120, category: 'internet_appli', date: fmt(fourDaysAgo), note: 'Abonnement Netflix & Spotify', createdAt: Date.now() - 9000 },
-                { id: 'd10', amount: 300, category: 'credit', date: fmt(fourDaysAgo), note: 'Remboursement mensuel', createdAt: Date.now() - 10000 }
-            ];
-
-            state.expenses = [...sample, ...state.expenses];
-            saveToStorage();
-            updateUI();
-            showToast('Données de démonstration ajoutées !');
-        }
-
-        function exportCSV() {
-            if (state.expenses.length === 0) {
-                showToast('Aucune dépense à exporter');
-                return;
-            }
-            const headers = ['Date', 'Catégorie', 'Montant', 'Devise', 'Note'];
-            const rows = state.expenses.map(e => {
-                const cat = CATEGORIES.find(c => c.id === e.category);
-                const catName = cat ? cat.name : e.category;
-                const safeNote = `"${(e.note || '').replace(/"/g, '""')}"`;
-                return [e.date, `"${catName}"`, e.amount, state.currency, safeNote].join(',');
-            });
-
-            const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `depenses_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast('Export CSV téléchargé !');
-        }
-
-        // --- 8. MODAL & TOAST ---
-        function openConfirmModal(title, message, onConfirm) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = message;
-            state.pendingConfirmAction = onConfirm;
-            const modal = document.getElementById('confirmModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeConfirmModal() {
-            const modal = document.getElementById('confirmModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            state.pendingConfirmAction = null;
-        }
-
-        let toastTimeout;
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 2800);
-        }
-
-        // --- 9. ÉCOUTEURS D'ÉVÉNEMENTS ---
-        function setupEventListeners() {
-            // Formulaire d'ajout
-            document.getElementById('expenseForm').addEventListener('submit', addExpense);
-
-            // Montants rapides (+10, +20, etc.)
-            document.querySelectorAll('.quick-amount').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const input = document.getElementById('amount');
-                    const cleanVal = (input.value || '').replace(/\s+/g, '').replace(',', '.');
-                    const current = parseFloat(cleanVal) || 0;
-                    const add = parseFloat(btn.dataset.quickAmount);
-                    input.value = (current + add).toString();
-                });
-            });
-
-            // Filtres de période
-            document.querySelectorAll('.period-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    state.filterPeriod = btn.dataset.period;
-                    document.querySelectorAll('.period-btn').forEach(b => {
-                        b.className = 'period-btn flex-1 sm:flex-initial text-xs font-medium px-3 py-1.5 rounded-lg transition';
-                    });
-                    btn.className = 'period-btn active bg-white dark:bg-slate-900 text-emerald-500 shadow-sm flex-1 sm:flex-initial text-xs font-semibold px-3 py-1.5 rounded-lg transition';
-                    updateUI();
-                });
-            });
-
-            // Filtre catégorie & Recherche
-            document.getElementById('filterCategory').addEventListener('change', (e) => {
-                state.filterCategory = e.target.value;
-                updateHistoryList();
-                lucide.createIcons();
-            });
-
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                state.searchQuery = e.target.value;
-                updateHistoryList();
-                lucide.createIcons();
-            });
-
-            // Devise
-            document.getElementById('currencySelect').addEventListener('change', (e) => {
-                state.currency = e.target.value;
-                document.getElementById('formCurrencyLabel').textContent = state.currency;
-                saveSettings();
-                updateUI();
-            });
-
-            // Thème Sombre / Clair
-            document.getElementById('themeToggle').addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                saveSettings();
-            });
-
-            // Démo & Export
-            document.getElementById('demoBtn').addEventListener('click', loadDemoData);
-            document.getElementById('mobileDemoBtn').addEventListener('click', loadDemoData);
-            document.getElementById('exportBtn').addEventListener('click', exportCSV);
-
-            // Tout vider
-            document.getElementById('clearAllBtn').addEventListener('click', () => {
-                openConfirmModal(
-                    'Tout supprimer ?',
-                    'Êtes-vous sûr de vouloir effacer tout votre historique de dépenses ? Cette action est définitive.',
-                    () => {
-                        state.expenses = [];
-                        saveToStorage();
-                        updateUI();
-                        showToast('Historique entièrement vidé');
-                    }
-                );
-            });
-
-            // Modal boutons
-            document.getElementById('modalCancelBtn').addEventListener('click', closeConfirmModal);
-            document.getElementById('modalConfirmBtn').addEventListener('click', () => {
-                if (typeof state.pendingConfirmAction === 'function') {
-                    state.pendingConfirmAction();
-                }
-                closeConfirmModal();
-            });
-        }
-    </script>
+    // Initialisation
+    renderCategories();
+    updateUI();
+  </script>
 </body>
 </html>
